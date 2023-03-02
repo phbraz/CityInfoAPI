@@ -1,6 +1,7 @@
 ﻿using CityInfoAPI.DbContexts;
 using CityInfoAPI.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CityInfoAPI.Services;
 
@@ -39,5 +40,23 @@ public class CityInfoRepository : ICityInfoRepository
         return await _context.PointOfInterests.FirstOrDefaultAsync(x =>
             x.CityId == cityId && x.Id == pointOfInterestId);
     }
-    
+
+    public async Task<bool> CityExistsAsync(int cityId)
+    {
+        return await _context.Cities.AnyAsync(x => x.Id == cityId);
+    }
+
+    public async Task AddPointsOfInterestForCityAsync(int cityId, PointOfInterest pointOfInterest)
+    {
+        var city = await GetCityAsync(cityId, false);
+        if (city != null)
+        {
+            city.PointsOfInterests.Add(pointOfInterest);
+        }
+    }
+
+    public async Task<bool> SaveChangesAsync()
+    {
+        return (await _context.SaveChangesAsync() >= 0);
+    }
 }
